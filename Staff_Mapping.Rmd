@@ -1,0 +1,421 @@
+---
+title: "Faculty_mapping EBS"
+author: "me"
+date: "2023-23-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 5)
+```
+
+
+# What is our research purpose and existing areas of research strength?
+
+
+
+EBS is composed of approximately 42 FTE staff across three broadly defined disciplines: econometrics, analytics, statistics, and actuarial studies. However, many of us do not fit neatly into any of these categories, and our research interests are broad and varied even amongst these disciplines. 
+
+This diversity of research and opinions in many ways enhances the research strength of EBS, and this diversity/flexibility has most assuredly allowed us to capitalize on emerging opportunities. However, the growth we’ve experienced has also created an inhomogeneous research landscape in the Department: there is large variation in the problems, methods, and philosophies used within the various disciplines under the EBS banner.
+
+This has led several staff to question, at least in private, where we are heading, what we see as our specialties within the department, and where our competitive advantages lie. Whether we wish to admit it or not, this has also played a part in staff departures over the last four years. 
+
+
+This has led met to think about the following questions which may be useful for us to try and answer on a macro level. 
+
+> Given the various disciplines that we inhabit, how can we maintain our heterogeneity, while celebrating each other's achievements even if we don't work in those areas? How best do we optimize research outcomes, while meeting teaching obligations, and fostering a cohesive department? 
+
+
+To try and answer this, I believe the first thing we need to do is understand a few key points. 
+
+* Where are our areas of existing strengths? 
+* How do we leverage, solidify, these existing strengths in an inclusive way?
+* How is the department likely to change in ten years?
+
+
+To answer the above, we first need to consider who we are as a department and what do we do (research-wise). This means we need to analyse both the level-based demographics of the department, as well as our existing research areas of strength. Obtaining data on this would help us plan for the future, figure out any areas of weakness, understand in what areas we may need to build.
+
+To help us try and answer the above question, I've decided to try and create a **very broad** "research map" of our faculty across three areas: theory, methods, and applications.
+
+# Data
+To carry out this analysis, and to try and maintain as much objectivity as possible, the only data I've used is data that I've  scrapped from all of our keywords listed on research.monash.edu. 
+
+**This data is old, and fairly generic, but is accessible to anyone who googles us. As such, this represents a good picture of what "others see" when they look at our department, and how people outside your area of expertise in the department view your research. Therefore, if you don't like what follows, blame the keywords, not me!**
+
+The data I've scrapped has names and our keywords for research interests. If that data wasn't available for a staff member on research.monash.edu, then I went to their google scholar page. I've also augmented this data with the level of the faculty appointment. 
+
+
+```{r text, echo=FALSE}
+#First, we need to process the text to make it a bit more easily readable. That's done through the following hidden code chunck. 
+
+rm(list=ls())
+library(tidyverse)
+library(readxl)
+People_keywords <- read_excel("~/Dropbox (Monash Uni Enterprise)/EBS_Retreat2022/scripts/data/People_keywords.xlsx")
+#View(People_keywords1)
+
+People_keywords1<-People_keywords
+
+People_keywords1$Keywords<-sub("time series analysis","TSA",People_keywords1$Keywords)
+
+People_keywords1$Keywords<-sub("Time Series Analysis","TSA",People_keywords1$Keywords)
+
+People_keywords1$Keywords<-sub("financial econometrics","finmet",People_keywords1$Keywords)
+
+People_keywords1$Keywords<-sub("operations research","OR",People_keywords1$Keywords)
+
+
+People_keywords1$Keywords<-sub("Data Science","datasci",People_keywords1$Keywords)
+
+People_keywords1$Keywords<-sub("machine learning","ML",People_keywords1$Keywords)
+
+
+People_keywords1$Keywords<-sub("data science","datasci",People_keywords1$Keywords)
+
+People_keywords1$Keywords<-sub("science","datasci",People_keywords1$Keywords)
+People_keywords1$Keywords<-sub("datadatascience","datasci",People_keywords1$Keywords)
+
+
+People_keywords1$Keywords<-sub("Applied Econometrics","appmet",People_keywords1$Keywords)
+
+People_keywords1$Keywords<-sub("econometric","econometrics",People_keywords1$Keywords)
+
+People_keywords1$Keywords<-sub("econometricss","econometrics",People_keywords1$Keywords)
+
+
+People_keywords1$Keywords<-sub("time series","TSA",People_keywords1$Keywords)
+
+People_keywords<-People_keywords1
+
+```
+
+# Word Cloud
+The simplest thing we can do to get a feel for what type of research we do as a department is to simply look at the frequency of the keywords. First, let's do the silly thing and make a word cloud!
+
+To make the words fit more easily, I had to define a few shorter phrases, e.g., tsa=time series analysis, datasci = data science, appmet = applied econometrics. 
+
+```{r, echo=FALSE}
+
+library("tm")
+library("SnowballC")
+library("RColorBrewer")
+library("wordcloud")
+library("tidytext")
+
+# Stem the words before you do the word cloud!!!!
+
+#dtm <- TermDocumentMatrix(docs)
+#m <- as.matrix(dtm)
+#v <- sort(rowSums(m),decreasing=TRUE)
+#d <- data.frame(word = names(v),freq=v)
+#head(d, 10)
+
+tidy_keywords1<-People_keywords1%>%unnest_tokens(word,Keywords) %>%  mutate(stem = wordStem(word))
+
+
+#set.seed(1234)
+#wordcloud(words = d$word, freq = d$freq, min.freq = 3,
+ #         max.words=200, random.order=FALSE, rot.per=0.35, 
+#          colors=brewer.pal(8, "Dark2"))
+
+wordcloud(words = tidy_keywords1$stem, min.freq = 3,
+          max.words=200, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
+
+```
+
+```{r, echo=FALSE}
+#dtm <- TermDocumentMatrix(docs)
+#m <- as.matrix(dtm)
+#v <- sort(rowSums(m),decreasing=TRUE)
+#d <- data.frame(word = names(v),freq=v)
+#head(d, 10)
+
+# words that occur at least five times :
+#findFreqTerms(dtm, lowfreq = 5)
+# words that occur at least ten times :
+#findFreqTerms(dtm, lowfreq = 10)
+
+```
+
+## Common Words Plot
+Now let's go ahead and look at the frequency of various keywords, where we only look at words that occur more than three times, i.e., the keyword word must be shared by at least three people in the department. 
+
+
+```{r pressure, echo=FALSE}
+docs <- Corpus(VectorSource(People_keywords$Keywords))
+
+
+docs <- tm_map(docs, stripWhitespace)
+# Convert the text to lower case
+docs <- tm_map(docs, content_transformer(tolower))
+# Remove numbers
+docs <- tm_map(docs, removeNumbers)
+# Remove english common stopwords
+docs <- tm_map(docs, removeWords, stopwords("english"))
+# Remove your own stop word
+# specify your stopwords as a character vector
+docs <- tm_map(docs, removeWords, c("blabla1", "blabla2")) 
+# Remove punctuations
+docs <- tm_map(docs, removePunctuation)
+# Eliminate extra white spaces
+#docs <- tm_map(docs, stripWhitespace)
+
+dtm <- DocumentTermMatrix(docs)
+
+wf <- data.frame(docs=Docs(dtm), as.matrix(dtm)) 
+
+library(tidyverse)
+wf <- wf %>% gather(key = "terms", value = "freq", -docs)
+
+#library(ggplot2)
+#ggplot(wf, aes(terms, freq)) + 
+#  geom_bar(stat="identity") +
+# # facet_wrap(~ docs) + 
+#  theme(axis.text.x=element_text(angle=90,)) 
+
+new_df<-wf %>% group_by(terms) %>% summarize(sums=sum(freq)) %>% arrange(sums)
+
+new_df %>% filter(sums>3) %>% ggplot(aes(terms, sums)) + 
+  geom_bar(stat="identity")+   theme(axis.text.x=element_text(angle=90,)) 
+
+
+
+
+```
+
+
+# How do we fit together, and what are our areas of strength?
+
+Over the last few years, several junior faculty have directly expressed disquiet to me regarding how they "fit in" with the existing research landscape, and our existing areas of strength. Responding to such issues has been difficult without really knowing what are our areas of strength.
+
+To try and get some sense of this, I've measured our areas of "research strength" by looking at the frequency of the keywords across the staff. Since the keywords data from research.monash.edu is a bit generic, I've grouped the keywords into three separate bins: "Theory", "Methods", and "Applications".
+
+You can look at all these words for yourself and we can disagree about some of them, but all-in-all they make good sense on the whole. I'm not looking for perfection here just broad patterns. 
+
+By breaking our research into these three "bins", I can begin to try and visualize: 
+
+* what areas are our current research strength; 
+* across different research areas, what is the distribution of faculty and is their correlation across their "levels";
+* is there clustering across staff levels, and research areas. 
+
+
+To visualize this, I've mapped each faculty member, as represented by their keywords, to an outcome defined in terms of the weight their keywords place on theory, methods, and applications. The end result will be a vector of the form $(w_T,w_M,w_A)$ for each faculty that lies in the simplex, i.e., $w_T+w_M+w+A=1$, $w_j\ge0$. Once that is done, we can answer the above questions along the lines of (T,M,A). 
+
+> Note: An implicit assumption here is that we are well-represented by our keywords, and that the weight we assign to each of our keywords is uniform. Of course, this is probably not be the case, but again this is broad strokes stuff. 
+
+To define the keyword bins for (T,M,A), I needed to take a stand on what keyword is a theory word, or a methods word. Once that is done, I can define "applied" keywords as the negation of the sets theory and methods. We can argue about this, but instead, since this is all here and documented, feel free to change these around and investigate how this changes the results. 
+
+
+
+```{r, echo=FALSE}
+
+library("tidytext")
+
+tidy_keywords<-People_keywords1%>%unnest_tokens(word,Keywords)
+
+
+tidy_keywords1<-People_keywords1%>%unnest_tokens(word,Keywords) %>%  mutate(stem = wordStem(word))
+
+tidy_keywords1<- tidy_keywords1 %>% anti_join(stop_words)
+
+
+#tidy_keywords1 %>% group_by(stem) %>% count() %>% arrange(-n)
+
+```
+
+
+After creating the lists for methods and theory list of keywords, I've defined an application word as any word that is in our keywords list, but is not in the theory or methods list. 
+
+> Note: keywords are allowed to appear in multiple lists to maintain ambiguity. For instance, statistcal is in both theory, and methods sets.  
+
+
+```{r, echo=FALSE}
+
+#Theory words examples include, inference, theory, Bayesian, robust, estimation, stochastic, minimum, distance, testing, causal
+
+
+Theory_stem<- c("infer", "tsa", "statist", "theory", "theori", "bayesian", "infer", "robust", "highdimension", "estim", "nonlinear", "depend", "probabilist", "memori", "risk", "oper", "constrain", "stochast", "minimum", "distanc", "nonparametr", "econometr", "simul", "semiparametr", "mathemat", "actuari","optimisationoper", "test","extrem","causal", "multivari", "econometr", "actuari","cross","section","quantit","uncertainti")
+
+Theory_stem<- data.frame(Theory_stem)
+names(Theory_stem)<-c("stem")
+
+#Methods word examples include,  computing, analysis, visualisation, methods, estimation, time series analysis, forecasting, analytics, econometrics, machine learning, optimisation, methodology 
+
+
+
+Methods_stem<- c("comput", "statist", "ml", "visual", "visuals", "tool", "methodologi", "method", "graphic", "model", "analyt", "hierarch", "forecast", "machin", "learn", "appmet",	"visualis","analysi","cross","section","research")
+
+
+Methods_stem<- data.frame(Methods_stem)
+names(Methods_stem)<-c("stem")
+```
+
+
+```{r, echo=FALSE}
+NotApps_stem<-rbind(Theory_stem, Methods_stem)
+names(NotApps_stem)<-c("stem")
+
+uniqueWords_stem<- data.frame(unique(tidy_keywords1$stem)) 
+names(uniqueWords_stem)<-c("stem")
+
+Apps_stem<- anti_join(uniqueWords_stem,NotApps_stem)
+
+```
+
+## Calculating weights
+
+Calculating the weights is fairly straightforward using joins. If you think of the Theory, Methods, and Apps words as sets, $T, M, A$, then all we have to do is figure out the intersection and union of the various sets with each faculty members keywords. 
+
+To see how I've done this without digging into to the code, let's take Brett as an example. Brett's keywords are "development" and "economics". If we think of Brett's keywords as the set $Brett:=\{development,\;economics\}$, which are both in the "Applications" bucket. Hence, Brett's weight on applications will be 1, and the others will be zero. More formally, this is calculated as 
+$$
+(\text{Card}(Brett\cap Theory),\text{Card}(Brett\cap Methods),\text{Card}(Brett\cap App)/\text{Card}(Brett)
+$$
+
+```{r, echo=FALSE}
+
+App_counts<- inner_join(tidy_keywords1, Apps_stem)
+
+App_ppl_counts <- App_counts %>% group_by(Name) %>% summarise(n_Apps=n()) %>% arrange(n_Apps)
+No_app_counts <- anti_join(tidy_keywords1,App_ppl_counts, "Name")
+No_app_names <- unique(No_app_counts$Name)
+
+Theory_counts<- inner_join(tidy_keywords1, Theory_stem)
+Theory_ppl_counts <- Theory_counts %>% group_by(Name) %>% summarise(n_Theory=n()) %>% arrange(n_Theory)
+No_Theory_counts <- anti_join(tidy_keywords1,Theory_ppl_counts, "Name")
+No_Theory_names <- unique(No_Theory_counts$Name)
+
+
+Methods_counts<- inner_join(tidy_keywords1, Methods_stem)
+Methods_ppl_counts <- Methods_counts %>% group_by(Name) %>% summarise(n_Methods=n()) %>% arrange(n_Methods)
+No_Methods_counts <- anti_join(tidy_keywords1,Methods_ppl_counts, "Name")
+No_Methods_names <- unique(No_Methods_counts$Name)
+
+
+All_counts<- left_join(tidy_keywords1,App_ppl_counts)
+All_counts<- left_join(All_counts, Methods_ppl_counts)
+All_counts<- left_join(All_counts, Theory_ppl_counts)
+
+
+# Replace the NAs
+All_counts[is.na(All_counts)] <- 0
+
+# Calcualte weights
+All_counts_weight<- All_counts %>% select(-word,-stem) %>% mutate(totals=n_Apps+n_Theory+n_Methods, w_Apps = n_Apps/totals,  w_Theory = n_Theory/totals,w_Methods = n_Methods/totals)
+
+All_weights_names <- All_counts_weight %>% select(Name,Level,w_Apps,w_Theory,w_Methods) 
+All_weights_names <- unique(All_weights_names)
+
+```
+
+
+Once we have the weights, we can plot the results using a ternary diagram across the axes of "theory", "methods", and "applications". Here is what that diagram looks like across the staff levels. 
+
+```{r, echo=FALSE}
+library(ggtern)
+library(plotly)
+
+base <- ggtern(data = All_weights_names, mapping = aes(x = w_Apps, y = w_Theory, z = w_Methods))  + 
+  geom_point(mapping = aes(color = "Points"), size = 2, alpha = 0.5) +
+  geom_text(mapping = aes(label = Level, color = "Level", angle=45,show.legend = FALSE), size = 6) +
+scale_color_manual(values = c("black", "red")) +
+labs(color = "Series") + 
+theme_nomask()+
+theme_rotate(degrees = 60)
+
+base
+
+```
+
+## Two-dimensional version
+To me, there is a clear distinction between theory and methods, but I acknowledge that not everyone agrees with this. So, let's compare two different one-dimensional versions of the ternary diagram: one version where we add everyone's weight in the "methods" bucket to the "theory" bucket, and one where we do the opposite. 
+
+For what it's worth, in my opinion, the words in the "methods" set are closer to "applications" than they are to theory words. So, my preferred way of thinking about this is to think of adding all the methods words to applications, rather than "theory". 
+
+These plots are given below.
+
+
+```{r, echo=FALSE}
+#library(cowplot)
+All_counts_2Dweight_APP<- All_counts %>% select(-word,-stem) %>% mutate(totals=n_Apps+n_Theory+n_Methods, w_Applied = (n_Apps+n_Methods)/totals,  w_Theory = (n_Theory)/totals)
+
+All_counts_2Dweight_TH<- All_counts %>% select(-word,-stem) %>% mutate(totals=n_Apps+n_Theory+n_Methods, w_Applied = (n_Apps)/totals,  w_Theory = (n_Theory+n_Methods)/totals)
+
+
+All_2Dweights_names_APP <- All_counts_2Dweight_APP %>% select(Name,Level,w_Applied,w_Theory) 
+All_2Dweights_names_APP <- unique(All_2Dweights_names_APP)
+
+All_2Dweights_names_TH <- All_counts_2Dweight_TH %>% select(Name,Level,w_Applied,w_Theory) 
+All_2Dweights_names_TH <- unique(All_2Dweights_names_TH)
+
+
+
+#1-d version
+#scatter_APP<-All_2Dweights_names_APP %>% mutate(index=seq(1,1,36))%>% ggplot(aes(x=w_Theory, y=index, color=Level)) + geom_point(mapping = aes(color = "Level"), size = .1, alpha = 0.5, position= position_dodge(w=0.2)) +
+#geom_text(mapping = aes(label = Level), size = 5, position= position_dodge(w=0.2)) 
+#
+#scatter_TH<-All_2Dweights_names_TH %>% mutate(index=seq(1,1,36))%>% ggplot(aes(x=w_Theory, y=index, color=Level)) + geom_point(mapping = aes(color = "Level"), size = .1, alpha = 0.5, position= position_dodge(w=0.2)) +
+#geom_text(mapping = aes(label = Level), size = 5, position= position_dodge(w=0.2)) 
+#
+#plot_grid(scatter_APP, scatter_TH)
+
+#2-d version
+scatter_APP<-All_2Dweights_names_APP %>% ggplot(aes(x=w_Theory, y=w_Applied, color=Level)) + geom_point( size = 2, alpha = 0.25, position= position_dodge(w=0.2)) +
+geom_text(mapping = aes(label = Level), size = 5, position= position_dodge(w=0.2),show.legend = FALSE) +
+  ggtitle("Add App") 
+
+scatter_APP
+
+scatter_TH<-All_2Dweights_names_TH %>% ggplot(aes(x=w_Theory, y=w_Applied, color=Level)) + geom_point(size = 2, alpha = 0.25, position= position_dodge(w=0.2)) +
+geom_text(mapping = aes(label = Level), size = 5, position= position_dodge(w=0.2),show.legend = FALSE) +
+  ggtitle("Add Theory")
+
+scatter_TH
+
+
+```
+
+
+# Answering the questions?
+Recall that the main questions I wanted to answer with this were
+
+* what areas are our current research strength; 
+
+* across these different areas of strength, what is the distribution of faculty in terms of their "levels";
+
+* is there clustering across staff levels, and research areas. 
+
+## What areas are our current research strength?
+If we think of ourselves as distinct groups in terms of applications, methods and theory, then we can try and see if we cluster across two or three dimensions.
+```{r, echo=FALSE}
+
+set.seed(4112)
+cluster_data<-unique(All_weights_names)
+cluster_data1<-cluster_data%>%select(-Name,-Level)
+d<-scale(cluster_data1)
+d<-dist(d)
+temp<-kmeans(d,3)
+
+cluster_data$clusters<-temp$cluster
+# When you plot this on the terniary diagram you see that cluster 1 is composed of individuals who have more weigt on applications and methods, and very little weight on theory.
+# Cluster 2 is the opposite; more weight on theory, and less on applications. 
+cluster_data %>%group_by(Level,clusters)%>%count()
+cluster_data %>%group_by(clusters)%>%summarise(mean(w_Theory),mean(w_Apps),mean(w_Methods))
+cluster_data %>%group_by(clusters)%>%count()
+
+
+
+```
+ Clustering gives us a theory-heavy group, followed by a cohort with roughly similar weight across everything, and an application focused group. This tells us that are **existing strengths in terms of faculty numbers** are really theory and people who do mostly theory and methods.
+ 
+## Across these different areas of strength, what is the distribution of faculty and is their correlation across their "levels"?
+
+* In the pool that has more weight on applications, there is larger grouping of Bs than the other two clusters. 
+* The plot in two-dimensions shows that the applications end of the spectrum is really run by three-to-four level E's. 
+* If we think of Bs and Cs as one group, say ECRs, then there is almost equal weight across the three groups: 7, 4, 5
+* Es are almost evenly split. 
+
+## Is there clustering across staff levels, and research areas?
+* More people in the theory heavy cluster, followed by a cluster with even weight between theory and methods, and an application heavy cluster. There is some heterogeneity across the different faculty levels in these clusters, with the application cluster having a relatively larger share of junior staff.    
+
+
