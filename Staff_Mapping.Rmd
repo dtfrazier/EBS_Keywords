@@ -48,10 +48,10 @@ The data I've scrapped has names and our keywords for research interests. If tha
 ```{r text, echo=FALSE}
 #First, we need to process the text to make it a bit more easily readable. That's done through the following hidden code chunck. 
 
-rm(list=ls())
+#rm(list=ls())
 library(tidyverse)
 library(readxl)
-People_keywords <- read_excel("~/Dropbox (Monash Uni Enterprise)/EBS_Retreat2022/scripts/data/People_keywords.xlsx")
+People_keywords <- read_excel(here::here("People_keywords.xlsx"))
 #View(People_keywords1)
 
 People_keywords1<-People_keywords
@@ -96,11 +96,11 @@ To make the words fit more easily, I had to define a few shorter phrases, e.g., 
 
 ```{r, echo=FALSE}
 
-library("tm")
-library("SnowballC")
-library("RColorBrewer")
-library("wordcloud")
-library("tidytext")
+library(tm)
+library(SnowballC)
+library(RColorBrewer)
+library(wordcloud)
+library(tidytext)
 
 # Stem the words before you do the word cloud!!!!
 
@@ -176,8 +176,14 @@ wf <- wf %>% gather(key = "terms", value = "freq", -docs)
 
 new_df<-wf %>% group_by(terms) %>% summarize(sums=sum(freq)) %>% arrange(sums)
 
-new_df %>% filter(sums>3) %>% ggplot(aes(terms, sums)) + 
-  geom_bar(stat="identity")+   theme(axis.text.x=element_text(angle=90,)) 
+new_df %>%
+  filter(sums > 3) %>%
+  ggplot(aes(reorder(terms, -sums), sums)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, )) +
+  theme_bw() +
+  scale_y_continuous(expand = c(0, 0.1)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 
 
 
