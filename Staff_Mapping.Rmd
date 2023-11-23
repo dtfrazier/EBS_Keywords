@@ -96,11 +96,11 @@ To make the words fit more easily, I had to define a few shorter phrases, e.g., 
 
 ```{r, echo=FALSE}
 
-library("tm")
-library("SnowballC")
-library("RColorBrewer")
-library("wordcloud")
-library("tidytext")
+library(tm)
+library(SnowballC)
+library(RColorBrewer)
+library(wordcloud)
+library(tidytext)
 
 # Stem the words before you do the word cloud!!!!
 
