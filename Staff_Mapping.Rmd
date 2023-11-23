@@ -51,7 +51,7 @@ The data I've scrapped has names and our keywords for research interests. If tha
 rm(list=ls())
 library(tidyverse)
 library(readxl)
-People_keywords <- read_excel("~/Dropbox (Monash Uni Enterprise)/EBS_Retreat2022/scripts/data/People_keywords.xlsx")
+People_keywords <- read_excel(here::here("People_keywords.xlsx"))
 #View(People_keywords1)
 
 People_keywords1<-People_keywords
